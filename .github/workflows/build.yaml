@@ -1,0 +1,79 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'srcpkgs/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build void-packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    container:
+      image: ghcr.io/void-linux/void-musl-full
+      options: --privileged
+    env:
+      ARCH: x86_64-musl
+      BOOTSTRAP: x86_64-musl
+      TEST: 0
+      XBPS_ALLOW_CHROOT_BREAKOUT: yes
+
+    steps:
+      - name: Configure mirrors
+        run: |
+          mkdir -p /etc/xbps.d && cp /usr/share/xbps.d/*-repository-*.conf /etc/xbps.d/
+          sed -i 's|https://repo-default.voidlinux.org|https://repo-fastly.voidlinux.org|g' /etc/xbps.d/*-repository-*.conf
+          xbps-install -S
+
+      - name: Install dependencies
+        run: |
+          xbps-install -Syu xbps && xbps-install -yu && xbps-install -y git curl base-devel bash jq
+
+      - name: Checkout your repo
+        uses: classabbyamp/treeless-checkout-action@v1
+
+      - name: Checkout void-packages
+        run: |
+          git clone --depth=1 https://github.com/void-linux/void-packages.git void-packages
+
+      - name: Configure ethereal mode
+        run: |
+          mkdir -p etc
+          echo -e "XBPS_CHROOT_CMD=ethereal\nXBPS_MIRROR=https://repo-fastly.voidlinux.org/current" >> etc/conf
+          ln -s / masterdir
+        working-directory: void-packages
+
+      - name: Merge templates
+        run: |
+          cp -rv ../srcpkgs/nerdfont-iosveka srcpkgs/
+        working-directory: void-packages
+
+      - name: Build AyuGram
+        run: |
+          /bin/bash ./xbps-src -j$(nproc) pkg nerdfont-iosveka
+        working-directory: void-packages
+
+      - name: Sign & Index packages
+        env:
+          PRIV_KEY: ${{ secrets.PRIV_KEY }}
+        run: |
+          echo "$PRIV_KEY" > private.pem
+          xbps-rindex -a *.xbps
+          xbps-rindex -s --signedby "anrix <iz@anrix.org>" --privkey private.pem $PWD
+          xbps-rindex -S --privkey private.pem *.xbps
+          rm private.pem
+          mv *.xbps *.sig2 *-repodata $GITHUB_WORKSPACE/
+        working-directory: void-packages/hostdir/binpkgs
+
+      - name: Upload to release
+        uses: void-musl/upload-release@v1.0.2
+        with:
+          tag: 'build-${{ github.run_number }}'
+          rel_name: 'Automate build'
+          file_pat: '*.xbps *.sig2 *-repodata'
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
