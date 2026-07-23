@@ -2,9 +2,10 @@
 pkgname=nerdfont-iosevka
 version=3.4.0
 revision=1
+create_wrksrc=yes
 depends="font-util"
 short_desc="Slender monospace typeface family for Nerd Fonts"
-maintainer="anrix iz@anrix.org"
+maintainer="anrix <iz@anrix.org>"
 license="OFL-1.1"
 homepage="https://www.nerdfonts.com/"
 changelog="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/changelog.md"
@@ -13,7 +14,12 @@ checksum="51c7eebb8f933cc3d10c718a191317e7f028c2c7f0fc7e6f5c699655a797e02f"
 font_dirs="/usr/share/fonts/TTF"
 provides="font:monospace-0_1 font:sans-serif-0_1 font:serif-0_1"
 
+do_extract() {
+    bsdtar --no-same-owner --no-same-permissions \
+        -xf "${XBPS_SRCDISTDIR}/${pkgname}-${version}/Iosevka.zip"
+}
+
 do_install() {
-	vmkdir usr/share/fonts/TTF
-	vcopy *.ttc usr/share/fonts/TTF
+    vmkdir usr/share/fonts/TTF
+    vcopy *.ttf usr/share/fonts/TTF
 }
