@@ -53,6 +53,25 @@ jobs:
           cp -rv ../srcpkgs/nerdfont-iosevka srcpkgs/
         working-directory: void-packages
 
+      - name: Ensure uid=1001 gid=118 exist (for bsdtar ownership)
+        run: |
+          set -eux
+          getent passwd 1001 || true
+          getent group 118 || true
+
+          if ! getent group 118 >/dev/null; then
+            groupadd -g 118 xbuilder || true
+          fi
+
+          if ! getent passwd 1001 >/dev/null; then
+            useradd -u 1001 -g 118 -m xbuilder || true
+          fi
+
+          id  || true
+          getent passwd 1001 || true
+          getent group 118 || true
+
+
       - name: Build
         run: |
           /bin/bash ./xbps-src -j$(nproc) pkg nerdfont-iosevka
