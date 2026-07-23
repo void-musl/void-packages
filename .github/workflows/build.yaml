@@ -51,6 +51,7 @@ jobs:
       - name: Merge templates
         run: |
           cp -rv ../srcpkgs/nerdfont-iosevka srcpkgs/
+          cp -rv ../srcpkgs/ayugram-desktop srcpkgs/
         working-directory: void-packages
 
       - name: Ensure uid=1001 gid=118 exist (for bsdtar ownership)
@@ -71,7 +72,7 @@ jobs:
 
       - name: Build
         run: |
-          /bin/bash ./xbps-src -j$(nproc) pkg nerdfont-iosevka
+          /bin/bash ./xbps-src -j$(nproc) pkg nerdfont-iosevka ayugram-desktop
         working-directory: void-packages
 
       - name: Sign & Index packages
