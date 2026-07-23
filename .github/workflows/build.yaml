@@ -53,9 +53,9 @@ jobs:
           cp -rv ../srcpkgs/nerdfont-iosevka srcpkgs/
         working-directory: void-packages
 
-      - name: Build AyuGram
+      - name: Build
         run: |
-          /bin/bash ./xbps-src -j$(nproc) pkg nerdfont-iosveka
+          /bin/bash ./xbps-src -j$(nproc) pkg nerdfont-iosevka
         working-directory: void-packages
 
       - name: Sign & Index packages
