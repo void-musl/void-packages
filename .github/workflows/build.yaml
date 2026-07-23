@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'srcpkgs/**'
+      - '.github/**'
   workflow_dispatch:
 
 jobs:
@@ -56,21 +57,18 @@ jobs:
       - name: Ensure uid=1001 gid=118 exist (for bsdtar ownership)
         run: |
           set -eux
-          getent passwd 1001 || true
-          getent group 118 || true
-
-          if ! getent group 118 >/dev/null; then
-            groupadd -g 118 xbuilder || true
+          if getent group 118 >/dev/null; then
+            GNAME="$(getent group 118 | cut -d: -f1)"
+          else
+            groupadd -g 118 xbuilder
+            GNAME="xbuilder"
           fi
-
           if ! getent passwd 1001 >/dev/null; then
-            useradd -u 1001 -g 118 -m xbuilder || true
+            useradd -u 1001 -g "$GNAME" -m xbuilder
           fi
-
-          id  || true
+          id || true
           getent passwd 1001 || true
           getent group 118 || true
-
 
       - name: Build
         run: |
