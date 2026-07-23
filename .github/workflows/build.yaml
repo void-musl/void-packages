@@ -50,7 +50,7 @@ jobs:
 
       - name: Merge templates
         run: |
-          cp -rv ../srcpkgs/nerdfont-iosveka srcpkgs/
+          cp -rv ../srcpkgs/nerdfont-iosevka srcpkgs/
         working-directory: void-packages
 
       - name: Build AyuGram
