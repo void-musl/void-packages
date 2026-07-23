@@ -60,11 +60,11 @@ jobs:
           if getent group 118 >/dev/null; then
             GNAME="$(getent group 118 | cut -d: -f1)"
           else
-            groupadd -g 118 xbuilder
+            groupadd -gf 118 xbuilder || true
             GNAME="xbuilder"
           fi
           if ! getent passwd 1001 >/dev/null; then
-            useradd -u 1001 -g "$GNAME" -m xbuilder
+            useradd -u 1001 -gf "$GNAME" -m xbuilder
           fi
           id || true
           getent passwd 1001 || true
